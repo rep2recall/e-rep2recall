@@ -5,6 +5,8 @@ on:
     branches: [main]
   pull_request:
     branches: [main]
+  release:
+    types: [created, edited]
 
 jobs:
   build:
@@ -15,6 +17,11 @@ jobs:
 
     runs-on: ${{ matrix.platform }}
     steps:
+      - name: echo event name
+        run: |
+          echo "${{ github.event_name }}"
+          echo "${{ github.ref }}"
+
       - uses: actions/checkout@v2
 
       ############ Set Up ############
@@ -26,13 +33,13 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v2.1.5
         with:
-          node-version: 12.x
+          node-version: 14.x
 
-      ############ Build www ############
+      ############ Build frontend ############
 
-      - name: Build www
+      - name: Build frontend
         run: |
-          cd packages/www
+          cd packages/frontend
           npm i -g yarn rimraf
           yarn
           yarn build
@@ -83,15 +90,24 @@ jobs:
 
           cd dist
           tar -czf ../rep2recall-linux.tar.gz *
-      - name: Upload binaries to release (Linux)
-        if: matrix.platform == 'ubuntu-latest'
+      - name: Upload binaries to auto (Linux)
+        if: matrix.platform == 'ubuntu-latest' && github.event_name != 'release'
         uses: svenstaro/upload-release-action@v2
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
           file: rep2recall-linux.tar.gz
-          tag: release-${{ github.ref }}
           overwrite: true
-          body: Executable for Linux
+          tag: auto-${{ github.ref }}
+          body: Auto-built for main branch pushes
+      - name: Upload binaries to release (Linux)
+        if: matrix.platform == 'ubuntu-latest' && github.event_name == 'release'
+        uses: svenstaro/upload-release-action@v2
+        with:
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          file: rep2recall-linux.tar.gz
+          overwrite: true
+          tag: ${{ github.ref }}
+          body: Auto-built for main branch pushes
 
       ############ Packaging (macOS) ############
 
@@ -106,15 +122,24 @@ jobs:
 
           cd dist
           zip -r ../rep2recall-macos.zip *
-      - name: Upload binaries to release (macOS)
-        if: matrix.platform == 'macos-latest'
+      - name: Upload binaries to auto (macOS)
+        if: matrix.platform == 'macos-latest' && github.event_name != 'release'
         uses: svenstaro/upload-release-action@v2
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
           file: rep2recall-macos.zip
-          tag: release-${{ github.ref }}
           overwrite: true
-          body: Executable for macOS
+          tag: auto-${{ github.ref }}
+          body: Auto-built for main branch pushes
+      - name: Upload binaries to release (macOS)
+        if: matrix.platform == 'macos-latest' && github.event_name == 'release'
+        uses: svenstaro/upload-release-action@v2
+        with:
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          file: rep2recall-macos.zip
+          overwrite: true
+          tag: ${{ github.ref }}
+          body: Auto-built for main branch pushes
 
       ############ Packaging (Windows) ############
 
@@ -129,12 +154,21 @@ jobs:
 
           cd dist
           tar -cf ../rep2recall-windows.tar *
-      - name: Upload binaries to release (Windows)
-        if: matrix.platform == 'windows-latest'
+      - name: Upload binaries to auto (Windows)
+        if: matrix.platform == 'windows-latest' && github.event_name != 'release'
         uses: svenstaro/upload-release-action@v2
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
           file: rep2recall-windows.tar
-          tag: release-${{ github.ref }}
           overwrite: true
-          body: Executable for Windows
+          tag: auto-${{ github.ref }}
+          body: Auto-built for main branch pushes
+      - name: Upload binaries to release (Windows)
+        if: matrix.platform == 'windows-latest' && github.event_name == 'release'
+        uses: svenstaro/upload-release-action@v2
+        with:
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          file: rep2recall-windows.tar
+          overwrite: true
+          tag: ${{ github.ref }}
+          body: Auto-built for main branch pushes
