@@ -1,9 +1,0 @@
-/rep2recall
-/rep2recall.exe
-/rep2recall.app
-/data.db
-/data.db-*
-/public/
-/server.log
-/.env
-/.env.*
